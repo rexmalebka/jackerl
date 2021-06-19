@@ -17,43 +17,43 @@ ERL_NIF_TERM get_jackStatus(ErlNifEnv* env, unsigned int jackStatus){
 	for(int i=0; i<n; i++ ){
 		int o = 0;
 		if(jackStatus & JackFailure ) {
-			arr[i] = enif_make_atom(env, "jackFailure");
+			arr[i] = enif_make_atom(env, "failure");
 			o = JackFailure;
 		}else if(jackStatus & JackInvalidOption ) {
-			arr[i] = enif_make_atom(env, "jackInvalidOption");
+			arr[i] = enif_make_atom(env, "invalid_option");
 			o = JackInvalidOption;
 		}else if(jackStatus & JackNameNotUnique ) {
-			arr[i] = enif_make_atom(env, "jackNameNotUnique");
+			arr[i] = enif_make_atom(env, "name_not_unique");
 			o = JackNameNotUnique;
 		}else if(jackStatus & JackServerStarted ) {
-			arr[i] = enif_make_atom(env, "jackServerStarted");
+			arr[i] = enif_make_atom(env, "server_started");
 			o = JackServerStarted;
 		}else if(jackStatus & JackServerFailed ) {
-			arr[i] = enif_make_atom(env, "jackServerFailed");
+			arr[i] = enif_make_atom(env, "server_failed");
 			o = JackServerFailed;
 		}else if(jackStatus & JackServerError ) {
-			arr[i] = enif_make_atom(env, "jackServerError");
+			arr[i] = enif_make_atom(env, "server_error");
 			o = JackServerError;
 		}else if(jackStatus & JackNoSuchClient ) {
-			arr[i] = enif_make_atom(env, "jackNoSuchClient");
+			arr[i] = enif_make_atom(env, "no_such_client");
 			o = JackNoSuchClient;
 		}else if(jackStatus & JackLoadFailure ) {
-			arr[i] = enif_make_atom(env, "jackLoadFailure");
+			arr[i] = enif_make_atom(env, "load_failure");
 			o = JackLoadFailure;
 		}else if(jackStatus & JackInitFailure ) {
-			arr[i] = enif_make_atom(env, "jackInitFailure");
+			arr[i] = enif_make_atom(env, "init_failure");
 			o = JackInitFailure;
 		}else if(jackStatus & JackShmFailure ) {
-			arr[i] = enif_make_atom(env, "jackShmFailure");
+			arr[i] = enif_make_atom(env, "shm_failure");
 			o = JackShmFailure;
 		}else if(jackStatus & JackVersionError ) {
-			arr[i] = enif_make_atom(env, "jackVersionError");
+			arr[i] = enif_make_atom(env, "version_error");
 			o = JackVersionError;
 		}else if(jackStatus & JackBackendError ) {
-			arr[i] = enif_make_atom(env, "jackBackendError");
+			arr[i] = enif_make_atom(env, "backend_error");
 			o = JackBackendError;
 		}else if(jackStatus & JackClientZombie ) {
-			arr[i] = enif_make_atom(env, "jackClientZombie");
+			arr[i] = enif_make_atom(env, "client_zombie");
 			o = JackClientZombie;
 		}
 		jackStatus -= o;
