@@ -228,13 +228,13 @@ outputs:
 
 |        __atom__       |   __jack equivalent__  |                                                                                    __description__                                                                                    |
 |:-----------------:|:------------------:|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
-|   `jackNullOption`  |   JackNullOption   |                                                                 Null value to use when no option bits are needed.                                                                 |
-| `jackNoStartServer` | JackNoStartServer  | Do not automatically start the JACK server when it is not already running. This option is always selected if $JACK_NO_START_SERVER is defined in the calling process environment. |
-|  `jackUseExactName` |  JackUseExactName  |                                       Use the exact client name requested. Otherwise, JACK automatically generates a unique one, if needed.                                       |
-|   `jackServerName`  |   JackServerName   |                                                                          Optional server name parameter.                                                                          |
-|    `jackLoadName`   |    JackLoadName    |                                                                               (not implemented yet)                                                                               |
-|    `jackLoadInit`   |    JackLoadInit    |                                                                               (not implemented yet)                                                                               |
-|   `jackSessionId`   |   JackSessionID    |                                                                               (not implemented yet)                                                                               |
+|   `null`  |   JackNullOption   |                                                                 Null value to use when no option bits are needed.                                                                 |
+| `no_start_server` | JackNoStartServer  | Do not automatically start the JACK server when it is not already running. This option is always selected if $JACK_NO_START_SERVER is defined in the calling process environment. |
+|  `exact_name` |  JackUseExactName  |                                       Use the exact client name requested. Otherwise, JACK automatically generates a unique one, if needed.                                       |
+|   `server_name`  |   JackServerName   |                                                                          Optional server name parameter.                                                                          |
+|    `load_name`   |    JackLoadName    |                                                                               (not implemented yet)                                                                               |
+|    `load_init`   |    JackLoadInit    |                                                                               (not implemented yet)                                                                               |
+|   `session_id`   |   JackSessionID    |                                                                               (not implemented yet)                                                                               |
 ### Jack Status atoms
 
 |        atom       |   jack equivalent  |               Description                                                                                                                                                                                          |
