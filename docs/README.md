@@ -11,10 +11,10 @@ function arity:
 
 |                   invokation                   |    arity    |
 |:-----------------------------------------------|:-----------:|
-| `jack:open(ClientName).`                       | jack:open/1 |
-| `jack:open(ClientName, JackOptsAtom).`         | jack:open/2 |
-| `jack:open(ClientName, JackOptsList).`         | jack:open/2 |
-| `jack:open(ClientName, ServerName, JackOpts).` | jack:open/3 |
+| `jack:open(Client_name).`                       | jack:open/1 |
+| `jack:open(Client_name, Jack_optiom).`         | jack:open/2 |
+| `jack:open(Client_name, Jack_options).`         | jack:open/2 |
+| `jack:open(Client_name, Server_name, Jack_option_int).` | jack:open/3 |
 
 
 |     __Param__    |             __description__             |      __type__     |       __example__      |
@@ -183,6 +183,43 @@ outputs:
 |     `{ok, {portName, PortName}}`    |  returns the jack client name. |
 | `{error, {jackStatus, JackStatusList}}` | returns a list of atoms with jack status atoms (see below). |
 
+## callbacks
+
+
+function arity:
+
+|                   invokation                   |    arity    |
+|:-----------------------------------------------|:-----------:|
+| `jack:callback(CallbackAtom, Callback).`       | jack:callback/2 |
+
+Callback Arity
+
+|     __Call    |             __description__             |      __type__     |       __example__      |
+|:------------:|:-----------------------------------:|:-------------:|:------------------:|
+|  `CallbackAtom`  |          atom for a callback (see below)        |      atom     |  ``  |
+|  `Callback`      |    function with certain arity (see below)      |   function    |     `fun(ClientName, PortName, Reg )->  io:format("port: ~p on ~p is ~p",[PortName, ClientName, Reg]) end`     |
+
+
+outputs:
+
+|                 output                |                         description                         |
+|:-------------------------------------:|:-----------------------------------------------------------:|
+|     `{ok, {portName, PortName}}`    |  returns the jack client name. |
+| `{error, {jackStatus, JackStatusList}}` | returns a list of atoms with jack status atoms (see below). |
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 ## atom flags
@@ -191,38 +228,46 @@ outputs:
 
 |        __atom__       |   __jack equivalent__  |                                                                                    __description__                                                                                    |
 |:-----------------:|:------------------:|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
-|   `jackNullOption`  |   JackNullOption   |                                                                 Null value to use when no option bits are needed.                                                                 |
-| `jackNoStartServer` | JackNoStartServer  | Do not automatically start the JACK server when it is not already running. This option is always selected if $JACK_NO_START_SERVER is defined in the calling process environment. |
-|  `jackUseExactName` |  JackUseExactName  |                                       Use the exact client name requested. Otherwise, JACK automatically generates a unique one, if needed.                                       |
-|   `jackServerName`  |   JackServerName   |                                                                          Optional server name parameter.                                                                          |
-|    `jackLoadName`   |    JackLoadName    |                                                                               (not implemented yet)                                                                               |
-|    `jackLoadInit`   |    JackLoadInit    |                                                                               (not implemented yet)                                                                               |
-|   `jackSessionId`   |   JackSessionID    |                                                                               (not implemented yet)                                                                               |
+|   `null`  |   JackNullOption   |                                                                 Null value to use when no option bits are needed.                                                                 |
+| `no_start_server` | JackNoStartServer  | Do not automatically start the JACK server when it is not already running. This option is always selected if $JACK_NO_START_SERVER is defined in the calling process environment. |
+|  `exact_name` |  JackUseExactName  |                                       Use the exact client name requested. Otherwise, JACK automatically generates a unique one, if needed.                                       |
+|   `server_name`  |   JackServerName   |                                                                          Optional server name parameter.                                                                          |
+|    `load_name`   |    JackLoadName    |                                                                               (not implemented yet)                                                                               |
+|    `load_init`   |    JackLoadInit    |                                                                               (not implemented yet)                                                                               |
+|   `session_id`   |   JackSessionID    |                                                                               (not implemented yet)                                                                               |
 ### Jack Status atoms
 
 |        atom       |   jack equivalent  |               Description                                                                                                                                                                                          |
 |:-----------------:|:------------------:|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
-|    `jackFailure`    | JackFailure        | Overall operation failed.                                                                                                                                                                                                                                                                                                                                                                      |
-| `jackInvalidOption` | JackInvalidOption  | The operation contained an invalid or unsupported option.                                                                                                                                                                                                                                                                                                                                      |
-| `jackNameNotUnique` | JackNameNotUnique  | The desired client name was not unique.  |
-| `jackServerStarted` | JackServerStarted  | The JACK server was started as a result of this operation.   |
-|  `jackServerFailed` | JackServerFailed   | Unable to connect to the JACK server.                                                                                                                                                                                                                                                                                                                                                          |
-|  `jackServerError`  | JackServerError    | Communication error with the JACK server.                                                                                                                                                                                                                                                                                                                                                      |
-|  `jackNoSuchClient` | JackNoSuchClient   | Requested client does not exist.                                                                                                                                                                                                                                                                                                                                                               |
-|  `jackLoadFailure`  | JackLoadFailure    | Unable to load internal client                                                                                                                                                                                                                                                                                                                                                                 |
-|  `jackInitFailure`  | JackInitFailure    | Unable to initialize client                                                                                                                                                                                                                                                                                                                                                                    |
-|   `jackShmFailure`  | JackShmFailure     | Unable to access shared memory                                                                                                                                                                                                                                                                                                                                                                 |
-|  `jackVersionError` | JackVersionError   | Client's protocol version does not match                                                                                                                                                                                                                                                                                                                                                       |
-|  `jackBackendError` | JackBackendError   |                                                                                                                                                                                                                                                                                                                                                                                                |
-|  `jackClientZombie` | JackClientZombie   |                                                                                                                                                                                                                                                                                                                                                                                                |
-|  `jackNoSuchPort` |     | Requested port does not exist.                                                                                                                                                                                                                                                                                                                                                               |
+|    `failure`    | JackFailure        | Overall operation failed.                                                                                                                                                                                                                                                                                                                                                                      |
+| `invalid_option` | JackInvalidOption  | The operation contained an invalid or unsupported option.                                                                                                                                                                                                                                                                                                                                      |
+| `name_not_unique` | JackNameNotUnique  | The desired client name was not unique.  |
+| `server_started` | JackServerStarted  | The JACK server was started as a result of this operation.   |
+|  `server_failed` | JackServerFailed   | Unable to connect to the JACK server.                                                                                                                                                                                                                                                                                                                                                          |
+|  `server_error`  | JackServerError    | Communication error with the JACK server.                                                                                                                                                                                                                                                                                                                                                      |
+|  `no_such_client` | JackNoSuchClient   | Requested client does not exist.                                                                                                                                                                                                                                                                                                                                                               |
+|  `load_failure`  | JackLoadFailure    | Unable to load internal client                                                                                                                                                                                                                                                                                                                                                                 |
+|  `init_failure`  | JackInitFailure    | Unable to initialize client                                                                                                                                                                                                                                                                                                                                                                    |
+|   `shm_failure`  | JackShmFailure     | Unable to access shared memory                                                                                                                                                                                                                                                                                                                                                                 |
+|  `version_error` | JackVersionError   | Client's protocol version does not match                                                                                                                                                                                                                                                                                                                                                       |
+|  `backend_error` | JackBackendError   |                                                                                                                                                                                                                                                                                                                                                                                                |
+|  `client_zombie` | JackClientZombie   |                                                                                                                                                                                                                                                                                                                                                                                                |
+|  `no_such_port` |     | Requested port does not exist.                                                                                                                                                                                                                                                                                                                                                               |
 
 ### Port flags
 
 | atom                  | jack equivalent     | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 |-----------------------|---------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `jackPortIsInput`     | JackPortIsInput     | if JackPortIsInput is set, then the port can receive data.                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-| `jackPortIsOutput`    | JackPortIsOutput    | if JackPortIsOutput is set, then data can be read from the port.                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| `jackPortIsPhysical`  | JackPortIsPhysical  | if JackPortIsPhysical is set, then the port corresponds to some kind of physical I/O connector.                                                                                                                                                                                                                                                                                                                                                                                             |
-| `jackPortCanMonitor,` | JackPortCanMonitor  | if JackPortCanMonitor is set, then a call to jack_port_request_monitor() makes sense. Precisely what this means is dependent on the client. A typical result of it being called with TRUE as the second argument is that data that would be available from an output port (with JackPortIsPhysical set) is sent to a physical output connector as well, so that it can be heard/seen/whatever. Clients that do not control physical interfaces should never create ports with this bit set. |
-| `jackPortIsTerminal`  | JackPortIsTerminal  | JackPortIsTerminal means: for an input port: the data received by the port will not be passed on or made available at any other port for an output port: the data available at the port does not originate from any other port Audio synthesizers, I/O hardware interface clients, HDR systems are examples of clients that would set this flag for their ports.                                                                                                                            |
+| `input`     | JackPortIsInput     | if JackPortIsInput is set, then the port can receive data.                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| `output`    | JackPortIsOutput    | if JackPortIsOutput is set, then data can be read from the port.                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| `physical`  | JackPortIsPhysical  | if JackPortIsPhysical is set, then the port corresponds to some kind of physical I/O connector.                                                                                                                                                                                                                                                                                                                                                                                             |
+| `monitor,` | JackPortCanMonitor  | if JackPortCanMonitor is set, then a call to jack_port_request_monitor() makes sense. Precisely what this means is dependent on the client. A typical result of it being called with TRUE as the second argument is that data that would be available from an output port (with JackPortIsPhysical set) is sent to a physical output connector as well, so that it can be heard/seen/whatever. Clients that do not control physical interfaces should never create ports with this bit set. |
+| `terminal`  | JackPortIsTerminal  | JackPortIsTerminal means: for an input port: the data received by the port will not be passed on or made available at any other port for an output port: the data available at the port does not originate from any other port Audio synthesizers, I/O hardware interface clients, HDR systems are examples of clients that would set this flag for their ports.                                                                                                                            |
+### Jack Callback
+
+| atom                             | jack equivalent                | Description |
+|----------------------------------|--------------------------------|-------------|
+| `process`            | JackProcessCallback            |             |
+| `shutdown`           | JackShutdownCallback           |             |
+| `port_registration`   | JackPortRegistrationCallback   |             |
+| `client_registration` | jackClientRegistrationCallback |             |
