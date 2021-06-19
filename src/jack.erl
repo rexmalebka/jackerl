@@ -1,12 +1,14 @@
 -module(jack).
 
+-export([ init/0]).
 -export([
-	 init/0,
 	 open/1, open/2, open/3,
-	 activate/1,
+	 close/1, close/2,
+	 activate/1
+	]).
+-export([
 	 pregister/3, register_/3,
 	 callback/2,
-	 close/1,
 	 deactivate/1,
 	 client_get/2
 	]).
@@ -24,7 +26,6 @@ init() ->
 
 open(ClientName) when is_atom(ClientName)->
 	open(ClientName, default, 0).
-
 
 open(ClientName, JackOpts) when is_atom(ClientName) and is_number(JackOpts)->
 	open(ClientName, default, JackOpts);
@@ -50,7 +51,9 @@ open(_ClientName, _ServerName, _JackOpts) ->
 
 %%% close a client
 
-close(_ClientName) ->
+close(Client_name) ->
+	close(Client_name, default).
+close(_Client_name, _Server) ->
 	erlang:nif_error("NIF library not loaded").
 
 
