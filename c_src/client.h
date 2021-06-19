@@ -1,4 +1,4 @@
-//#include "jackerl_types.h"
+#include "callbacks.h"
 
 int JACK_CLIENTS_COUNT = 0;
 
@@ -64,9 +64,7 @@ ERL_NIF_TERM get_jackStatus(ErlNifEnv* env, unsigned int jackStatus){
 			arr,
 			n
 			);
-
 }
-
 
 search_results getJackClient(char client_name[100]){
 	search_results sr = {
@@ -88,6 +86,7 @@ search_results getJackClient(char client_name[100]){
 
 ERL_NIF_TERM client_open(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]){
 	
+	// check is args are valid
 	if( !enif_is_atom(env, argv[0]) || !enif_is_atom(env, argv[1]) || !enif_is_number(env, argv[2]) ) return enif_make_badarg(env);
 
         char client_name[MAX_CLIENT_NAME];
@@ -107,11 +106,19 @@ ERL_NIF_TERM client_open(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]){
         jack_clients.port[i].out_chann = 0;
 
 	// try to open the jack client
+	
+	void *void_args;
         jack_clients.client[i] = jack_client_open (
                         client_name, 
 			jack_clients.options[i], 
 			&jack_clients.status[i], 
 			server_name);
+
+	// callbacks
+	jack_set_client_registration_callback(jack_clients.client[i], callback_JackClientRegistration, NULL);
+	jack_set_port_connect_callback(jack_clients.client[i], callback_JackPortRegistrationCallback, NULL);
+	jack_set_port_registration_callback();
+
 	if(jack_clients.status[i] == 0){
 		// everything is okay :)
 

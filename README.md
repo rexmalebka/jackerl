@@ -67,7 +67,6 @@ https://jackaudio.org/api/
 
 ## callbacks
 - shutdown
-- info
 - process
 - freewhell
 - buffer_size

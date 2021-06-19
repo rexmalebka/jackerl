@@ -1,40 +1,38 @@
 -module(jack).
 
 -export([
-	 client_open/1, client_open/2, client_open/3,
-	 client_activate/1,
-	 port_register/3, port_register_/3
-	 %client_close/1,
-	 %client_deactivate/1,
-	 %client_get/2
+	 init/0,
+	 open/1, open/2, open/3,
+	 activate/1,
+	 pregister/3, register_/3,
+	 callback/2,
+	 close/1,
+	 deactivate/1,
+	 client_get/2
 	]).
 
 -on_load(init/0).
 
 init() ->
+	{ok, Pid} = jack_server:start(),
 	{ok, Path} = file:get_cwd(),
-	ok = erlang:load_nif(Path++"/priv/jackerl", 0).
-
-% client functions
-%
-% client_open(whiteNoise).
-% client_open(whiteNoise, 0).
-% client_open(whiteNoise, {jacknullOption}).
-% client_open({whiteNoise, default}, {jacknulloption}).
-% client_open(whiteNoise, default, 0).
+	ok = erlang:load_nif(Path++"/priv/jackerl", Pid).
 
 
-client_open(ClientName) when is_atom(ClientName)->
-	client_open(ClientName, default, 0).
+
+%%% open a client
+
+open(ClientName) when is_atom(ClientName)->
+	open(ClientName, default, 0).
 
 
-client_open(ClientName, JackOpts) when is_atom(ClientName) and is_number(JackOpts)->
-	client_open(ClientName, default, JackOpts);
+open(ClientName, JackOpts) when is_atom(ClientName) and is_number(JackOpts)->
+	open(ClientName, default, JackOpts);
 
-client_open(ClientName, JackOpts) when is_atom(ClientName) and is_atom(JackOpts)->
-	client_open(ClientName, [JackOpts]);
+open(ClientName, JackOpts) when is_atom(ClientName) and is_atom(JackOpts)->
+	open(ClientName, [JackOpts]);
 
-client_open(ClientName, JackOptsList) when is_atom(ClientName) and is_list(JackOptsList)->
+open(ClientName, JackOptsList) when is_atom(ClientName) and is_list(JackOptsList)->
 	JackOptsInt = lists:sum([
 		       case lists:member(jackNullOption, JackOptsList) of true -> 0; false -> 0 end,
 		       case lists:member(jackNoStartServer, JackOptsList) of true -> 1; false -> 0 end,
@@ -44,27 +42,40 @@ client_open(ClientName, JackOptsList) when is_atom(ClientName) and is_list(JackO
 		       case lists:member(jackLoadInit, JackOptsList) of true -> 16; false -> 0 end,
 		       case lists:member(jackSessionId, JackOptsList) of true -> 32; false -> 0 end
 		      ]),
-	client_open(ClientName, default, JackOptsInt).
+	open(ClientName, default, JackOptsInt).
 
-client_open(_ClientName, _ServerName, _JackOpts) ->
+open(_ClientName, _ServerName, _JackOpts) ->
 	erlang:nif_error("NIF library not loaded").
 
 
-client_close(_ClientName) ->
+%%% close a client
+
+close(_ClientName) ->
 	erlang:nif_error("NIF library not loaded").
 
-client_activate(_ClientName) ->
+
+%%% activate a client
+
+activate(_ClientName) ->
 	erlang:nif_error("NIF library not loaded").
 
-client_deactivate(_ClientName) ->
+%%% deactivate a client
+
+deactivate(_ClientName) ->
 	erlang:nif_error("NIF library not loaded").
+
+%%% get client information
 
 client_get(_ClientName, _Parameter)->
 	erlang:nif_error("NIF library not loaded").
 
+
+
 % port functions
 
-port_register(ClientName, PortName, PortFlags) when is_atom(ClientName) and is_atom(PortName) and is_list(PortFlags)->
+%%% register a port
+
+pregister(ClientName, PortName, PortFlags) when is_atom(ClientName) and is_atom(PortName) and is_list(PortFlags)->
 	PortFlagsInt = lists:sum([
 		       case lists:member(jackPortIsInput, PortFlags) of true -> 1; false -> 0 end,
 		       case lists:member(jackPortIsOutput, PortFlags) of true -> 2; false -> 0 end,
@@ -72,11 +83,23 @@ port_register(ClientName, PortName, PortFlags) when is_atom(ClientName) and is_a
 		       case lists:member(jackPortCanMonitor, PortFlags) of true -> 8; false -> 0 end,
 		       case lists:member(jackPortIsTerminal, PortFlags) of true -> 16; false -> 0 end
 		      ]),
-	port_register_(ClientName, PortName, PortFlagsInt).
+	register_(ClientName, PortName, PortFlagsInt).
 
 
-port_register_(_ClientName,_PortName, _PortFlags) ->
+register_(_ClientName,_PortName, _PortFlags) ->
 	erlang:nif_error("NIF library not loaded").
+
+callback(CallbackName, Callback ) ->
+	CFun = fun()->
+			       receive _ ->
+					       io:format("spawned???",[])
+			       end
+	       end,
+	PID = spawn(CFun),
+	erlang:register(CallbackName, PID),
+	ok.
+
+
 
 %port_unregister(_ClientName, _PortName) ->
 %	erlang:nif_error("NIF library not loaded").

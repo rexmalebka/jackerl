@@ -29,3 +29,9 @@ typedef struct {
 	int i;
 } search_results;
 
+typedef struct {
+	ErlNifEnv *env;
+	ErlNifPid pid;
+} gen_server_struct;
+
+gen_server_struct erl_server;

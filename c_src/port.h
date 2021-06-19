@@ -1,30 +1,3 @@
-/*
-int getPortFlags(ErlNifEnv* env, ERL_NIF_TERM term){
-	unsigned int *len;
-	int p=0;
-
-	ERL_NIF_TERM* H;
-	ERL_NIF_TERM* T;
-
-	enif_fprintf(stderr, "adsf adsfsdfdsf\n");
-	while(enif_get_list_cell(env, term, H, T)){
-		enif_fprintf(stderr, "miaumiau \n");
-	
-		char a[MAX_PORT_NAME];
-		
-		if(!enif_get_atom(env, *H, a, sizeof(a), ERL_NIF_LATIN1)) continue;
-		enif_fprintf(stderr, "adsf -%s- \n", a);
-		
-		if( strcmp(a, "jackPortIsInput")) p |= 1;
-		if( strcmp(a, "jackPortIsOutput")) p |= 2;
-		if( strcmp(a, "jackPortIsPhysical")) p |= 4;
-		if( strcmp(a, "jackPortCanMonitor")) p |= 8;
-		if( strcmp(a, "jackPortIsTerminal")) p |= 16;
-		term = *T;
-	}
-	return p;
-}
-*/
 ERL_NIF_TERM port_register(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]){
 	if( !enif_is_atom(env, argv[0]) || 
 			!enif_is_atom(env, argv[1]) || 
