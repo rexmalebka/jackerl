@@ -78,6 +78,9 @@ search_results getJackClient(char client_name[100]){
 
                 if( ! strcmp(jack_get_client_name(jack_clients.client[i]), client_name)){
 			sr.i = i;
+			if(jack_clients.client[i] == NULL ){
+				sr.i = -1;
+			}
 			break;
                 }
         }
@@ -114,12 +117,13 @@ ERL_NIF_TERM client_open(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]){
 			&jack_clients.status[i], 
 			server_name);
 
-	// callbacks
-	jack_set_client_registration_callback(jack_clients.client[i], callback_JackClientRegistration, NULL);
-	jack_set_port_connect_callback(jack_clients.client[i], callback_JackPortRegistrationCallback, NULL);
-	jack_set_port_registration_callback();
+	// set callbacks
+	//jack_set_client_registration_callback(jack_clients.client[i], callback_JackClientRegistration, NULL);
+	//jack_set_port_connect_callback(jack_clients.client[i], callback_JackPortRegistrationCallback, NULL);
+	//jack_set_port_registration_callback();
 
-	if(jack_clients.status[i] == 0){
+
+	if(jack_clients.status[i] == 0 || jack_clients.status[i] == 4){
 		// everything is okay :)
 
 		// register on jack_clients
@@ -127,35 +131,17 @@ ERL_NIF_TERM client_open(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]){
 		
 		return enif_make_tuple2(env, 
 				enif_make_atom(env, "ok"),
-				enif_make_tuple2(env, enif_make_atom(env, "jackStatus"), 
-					get_jackStatus(env, jack_clients.status[i])
-					)
-				);
-	}else if(jack_clients.status[i] == 4 ){
-                JACK_CLIENTS_COUNT++;
-
-		return enif_make_tuple3(
-				env, 
-				enif_make_atom(env, "ok"),
 				enif_make_tuple2(
 					env, 
-					enif_make_atom(env, "jackStatus"), 
-					get_jackStatus(env, jack_clients.status[i])
-					),
-				enif_make_tuple2(
-					env,
-					enif_make_atom(env, "jackClientRenamed"),
-					enif_make_atom(
-						env,
-						jack_get_client_name(jack_clients.client[i])
-						)
+					enif_make_atom(env, "client_name"), 
+				       	enif_make_atom(env, jack_get_client_name(jack_clients.client[i]))
 					)
 				);
         }else{
                 return enif_make_tuple2(env, enif_make_atom(env, "error"), 
                                 enif_make_tuple2(
 					env, 
-					enif_make_atom(env, "jackStatus"), 
+					enif_make_atom(env, "jack_status"), 
 					get_jackStatus(env, jack_clients.status[i])
 					)
 				);
@@ -167,7 +153,55 @@ ERL_NIF_TERM client_open(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]){
 
 
 ERL_NIF_TERM client_close(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]){
-        return enif_make_atom(env, "ok");
+	
+	// check is args are valid
+	if( !enif_is_atom(env, argv[0]) || !enif_is_atom(env, argv[1]) ) return enif_make_badarg(env);
+
+        char client_name[MAX_CLIENT_NAME];
+        char server_name[MAX_SERVER_NAME];
+
+        enif_get_atom(env, argv[0], client_name,sizeof(client_name), ERL_NIF_LATIN1);
+        enif_get_atom(env, argv[1], server_name,sizeof(server_name), ERL_NIF_LATIN1);
+
+	search_results sr = getJackClient(client_name);
+	
+	if(sr.i < 0 ) {
+		return enif_make_tuple2(env, 
+				enif_make_atom(env, "error"),
+				enif_make_tuple2(
+					env, 
+					enif_make_atom(env, "jack_status"), 
+				       	enif_make_list1(
+						env,
+						enif_make_atom(
+							env,
+							"no_such_client"
+							)		
+						)
+					)
+				);
+	}else{
+		if(jack_client_close(sr.ptr->client[sr.i]) >= 0){
+			return enif_make_tuple2(env, 
+					enif_make_atom(env, "ok"),
+					enif_make_tuple2(
+						env, 
+						enif_make_atom(env, "client_name"), 
+						enif_make_atom(env, jack_get_client_name(jack_clients.client[sr.i]))
+						)
+					);
+		}else{
+			return enif_make_tuple2(env, 
+					enif_make_atom(env, "error"),
+					enif_make_tuple2(
+						env, 
+						enif_make_atom(env, "jack_status"), 
+						get_jackStatus(env, jack_clients.status[sr.i])
+						)
+					);
+
+		}
+	}
 }
 
 ERL_NIF_TERM client_activate(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]){
@@ -180,27 +214,95 @@ ERL_NIF_TERM client_activate(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]
 	
 	search_results sr = getJackClient(client_name);
 
+
 	if(sr.i < 0 ) {
-                return enif_make_tuple2(env, 
-				enif_make_atom(env, "error"), 
-				enif_make_atom(env, "jackClientNotFound")
-				);
-	}
-	if(jack_activate(sr.ptr->client[sr.i]) >= 0){
-                return enif_make_tuple2(env, 
-				enif_make_atom(env, "ok"), 
-				enif_make_atom(env, "jackActivated")
+		return enif_make_tuple2(env, 
+				enif_make_atom(env, "error"),
+				enif_make_tuple2(
+					env, 
+					enif_make_atom(env, "jack_status"), 
+				       	enif_make_list1(
+						env,
+						enif_make_atom(
+							env,
+							"no_such_client"
+							)		
+						)
+					)
 				);
 	}else{
-                return enif_make_tuple2(env, 
-				enif_make_atom(env, "error"), 
-				enif_make_atom(env, "jackActivationFailed")
-				);
+		if(jack_activate(sr.ptr->client[sr.i]) >= 0){
+			return enif_make_tuple2(env, 
+					enif_make_atom(env, "ok"),
+					enif_make_tuple2(
+						env, 
+						enif_make_atom(env, "client_name"), 
+						enif_make_atom(env, jack_get_client_name(jack_clients.client[sr.i]))
+						)
+					);
+		}else{
+			return enif_make_tuple2(env, 
+					enif_make_atom(env, "error"),
+					enif_make_tuple2(
+						env, 
+						enif_make_atom(env, "jack_status"), 
+						get_jackStatus(env, jack_clients.status[sr.i])
+						)
+					);
+
+		}
 	}
+
 }
 
 ERL_NIF_TERM client_deactivate(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]){
-        return enif_make_atom(env, "ok");
+	if( !enif_is_atom(env, argv[0])) return enif_make_badarg(env);
+
+        char client_name[MAX_CLIENT_NAME];
+
+        enif_get_atom(env, argv[0], client_name,sizeof(client_name), ERL_NIF_LATIN1);
+	
+	search_results sr = getJackClient(client_name);
+
+
+	if(sr.i < 0 ) {
+		return enif_make_tuple2(env, 
+				enif_make_atom(env, "error"),
+				enif_make_tuple2(
+					env, 
+					enif_make_atom(env, "jack_status"), 
+				       	enif_make_list1(
+						env,
+						enif_make_atom(
+							env,
+							"no_such_client"
+							)		
+						)
+					)
+				);
+	}else{
+		if(jack_deactivate(sr.ptr->client[sr.i]) >= 0){
+			return enif_make_tuple2(env, 
+					enif_make_atom(env, "ok"),
+					enif_make_tuple2(
+						env, 
+						enif_make_atom(env, "client_name"), 
+						enif_make_atom(env, jack_get_client_name(jack_clients.client[sr.i]))
+						)
+					);
+		}else{
+			return enif_make_tuple2(env, 
+					enif_make_atom(env, "error"),
+					enif_make_tuple2(
+						env, 
+						enif_make_atom(env, "jack_status"), 
+						get_jackStatus(env, jack_clients.status[sr.i])
+						)
+					);
+
+		}
+	}
+
 }
 
 ERL_NIF_TERM client_get(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]){

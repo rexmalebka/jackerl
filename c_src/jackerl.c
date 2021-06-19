@@ -17,11 +17,13 @@
 
 static ErlNifFunc nif_funcs[] = {
 	{"open", 3, client_open},
+	{"close", 2, client_close},
+
 	{"activate", 1, client_activate},
+	{"deactivate", 1, client_deactivate},
+
 	{"register_", 3, port_register},
 /*
-	{"client_close", 1, client_close},
-	{"client_deactivate", 1, client_deactivate},
 	{"client_get", 2, client_get},
 	{"port_unregister", 3, client_open},
 	{"port_rename", 3, client_open},

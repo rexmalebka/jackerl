@@ -17,7 +17,7 @@ static void callback_JackClientRegistration(const char *name, int reg, void *arg
 static void callback_JackPortRegistrationCallback(  jack_port_id_t *id, int reg, void* arg){
         enif_fprintf(stderr,"port reg \n");
 
-	char *name = jack_port_name(id);
+	char *name = "potazio";
         enif_send(
                         NULL,
                         &erl_server.pid,

@@ -30,8 +30,8 @@ outputs:
 
 |                 output                |                         description                         |
 |:-------------------------------------:|:-----------------------------------------------------------:|
-|     `{ok, {clientName, ClientName}}`    |  returns the jack client name in case that jack renames it. |
-| `{error, {jackStatus, JackStatusList}}` | returns a list of atoms with jack status atoms (see below). |
+|     `{ok, {client_name, ClientName}}`    |  returns the jack client name in case that jack renames it. |
+| `{error, {jack_status, JackStatusList}}` | returns a list of atoms with jack status atoms (see below). |
 
 example:
 
@@ -71,7 +71,7 @@ outputs:
 |                 output                |                         description                         |
 |:-------------------------------------:|:-----------------------------------------------------------:|
 |     `{ok, {clientName, ClientName}}`    |  returns the jack client name. |
-| `{error, {jackStatus, JackStatusList}}` | returns a list of atoms with jack status atoms (see below). |
+| `{error, {jack_status, JackStatusList}}` | returns a list of atoms with jack status atoms (see below). |
 
 example:
 
@@ -79,8 +79,8 @@ example:
 
 ClientName   = white_noise.
 
-{ ok, {clientName, ClientName }}          = jack:close(ClientName).
-{ error, {jackStatus, Status}}            = jack:close(not_existing_client)
+{ ok, {client_name, Client_name }}          = jack:close(ClientName).
+{ error, {jack_status, Status}}            = jack:close(not_existing_client)
 ```
 
 ### activate a client
@@ -90,7 +90,7 @@ function arity:
 
 |                   invokation                   |    arity    |
 |:-----------------------------------------------|:-----------:|
-| `jack:activate(ClientName).`                      | jack:activate/1 |
+| `jack:activate(Client_name).`                      | jack:activate/1 |
 
 
 |     __Param__    |             __description__             |      __type__     |       __example__      |
@@ -102,8 +102,8 @@ outputs:
 
 |                 output                |                         description                         |
 |:-------------------------------------:|:-----------------------------------------------------------:|
-|     `{ok, {clientName, ClientName}}`    |  returns the jack client name. |
-| `{error, {jackStatus, JackStatusList}}` | returns a list of atoms with jack status atoms (see below). |
+|     `{ok, {client_name, ClientName}}`    |  returns the jack client name. |
+| `{error, {jack_status, JackStatusList}}` | returns a list of atoms with jack status atoms (see below). |
 
 
 ### deactivate a client
