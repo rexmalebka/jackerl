@@ -34,13 +34,13 @@ open(ClientName, JackOpts) when is_atom(ClientName) and is_atom(JackOpts)->
 
 open(ClientName, JackOptsList) when is_atom(ClientName) and is_list(JackOptsList)->
 	JackOptsInt = lists:sum([
-		       case lists:member(jackNullOption, JackOptsList) of true -> 0; false -> 0 end,
-		       case lists:member(jackNoStartServer, JackOptsList) of true -> 1; false -> 0 end,
-		       case lists:member(jackUseExactName, JackOptsList) of true -> 2; false -> 0 end,
-		       case lists:member(jackServerName, JackOptsList) of true -> 4; false -> 0 end,
-		       case lists:member(jackLoadName, JackOptsList) of true -> 8; false -> 0 end,
-		       case lists:member(jackLoadInit, JackOptsList) of true -> 16; false -> 0 end,
-		       case lists:member(jackSessionId, JackOptsList) of true -> 32; false -> 0 end
+		       case lists:member(null, JackOptsList) of true -> 0; false -> 0 end,
+		       case lists:member(no_start_server, JackOptsList) of true -> 1; false -> 0 end,
+		       case lists:member(exact_name, JackOptsList) of true -> 2; false -> 0 end,
+		       case lists:member(server_name , JackOptsList) of true -> 4; false -> 0 end,
+		       case lists:member(load_name, JackOptsList) of true -> 8; false -> 0 end,
+		       case lists:member(load_init, JackOptsList) of true -> 16; false -> 0 end,
+		       case lists:member(session_id , JackOptsList) of true -> 32; false -> 0 end
 		      ]),
 	open(ClientName, default, JackOptsInt).
 
@@ -77,11 +77,11 @@ client_get(_ClientName, _Parameter)->
 
 pregister(ClientName, PortName, PortFlags) when is_atom(ClientName) and is_atom(PortName) and is_list(PortFlags)->
 	PortFlagsInt = lists:sum([
-		       case lists:member(jackPortIsInput, PortFlags) of true -> 1; false -> 0 end,
-		       case lists:member(jackPortIsOutput, PortFlags) of true -> 2; false -> 0 end,
-		       case lists:member(jackPortIsPhysical, PortFlags) of true -> 4; false -> 0 end,
-		       case lists:member(jackPortCanMonitor, PortFlags) of true -> 8; false -> 0 end,
-		       case lists:member(jackPortIsTerminal, PortFlags) of true -> 16; false -> 0 end
+		       case lists:member(input, PortFlags) of true -> 1; false -> 0 end,
+		       case lists:member(output, PortFlags) of true -> 2; false -> 0 end,
+		       case lists:member(physical, PortFlags) of true -> 4; false -> 0 end,
+		       case lists:member(monitor, PortFlags) of true -> 8; false -> 0 end,
+		       case lists:member(terminal, PortFlags) of true -> 16; false -> 0 end
 		      ]),
 	register_(ClientName, PortName, PortFlagsInt).
 
