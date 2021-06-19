@@ -183,6 +183,43 @@ outputs:
 |     `{ok, {portName, PortName}}`    |  returns the jack client name. |
 | `{error, {jackStatus, JackStatusList}}` | returns a list of atoms with jack status atoms (see below). |
 
+## callbacks
+
+
+function arity:
+
+|                   invokation                   |    arity    |
+|:-----------------------------------------------|:-----------:|
+| `jack:callback(CallbackAtom, Callback).`       | jack:callback/2 |
+
+Callback Arity
+
+|     __Call    |             __description__             |      __type__     |       __example__      |
+|:------------:|:-----------------------------------:|:-------------:|:------------------:|
+|  `CallbackAtom`  |          atom for a callback (see below)        |      atom     |  ``  |
+|  `Callback`      |    function with certain arity (see below)      |   function    |     `fun(ClientName, PortName, Reg )->  io:format("port: ~p on ~p is ~p",[PortName, ClientName, Reg]) end`     |
+
+
+outputs:
+
+|                 output                |                         description                         |
+|:-------------------------------------:|:-----------------------------------------------------------:|
+|     `{ok, {portName, PortName}}`    |  returns the jack client name. |
+| `{error, {jackStatus, JackStatusList}}` | returns a list of atoms with jack status atoms (see below). |
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 ## atom flags
@@ -226,3 +263,11 @@ outputs:
 | `jackPortIsPhysical`  | JackPortIsPhysical  | if JackPortIsPhysical is set, then the port corresponds to some kind of physical I/O connector.                                                                                                                                                                                                                                                                                                                                                                                             |
 | `jackPortCanMonitor,` | JackPortCanMonitor  | if JackPortCanMonitor is set, then a call to jack_port_request_monitor() makes sense. Precisely what this means is dependent on the client. A typical result of it being called with TRUE as the second argument is that data that would be available from an output port (with JackPortIsPhysical set) is sent to a physical output connector as well, so that it can be heard/seen/whatever. Clients that do not control physical interfaces should never create ports with this bit set. |
 | `jackPortIsTerminal`  | JackPortIsTerminal  | JackPortIsTerminal means: for an input port: the data received by the port will not be passed on or made available at any other port for an output port: the data available at the port does not originate from any other port Audio synthesizers, I/O hardware interface clients, HDR systems are examples of clients that would set this flag for their ports.                                                                                                                            |
+### Jack Callback
+
+| atom                             | jack equivalent                | Description |
+|----------------------------------|--------------------------------|-------------|
+| `jackProcessCallback`            | JackProcessCallback            |             |
+| `jackShutdownCallback`           | JackShutdownCallback           |             |
+| `jackPortRegistrationCallback`   | JackPortRegistrationCallback   |             |
+| `jackClientRegistrationCallback` | jackClientRegistrationCallback |             |
