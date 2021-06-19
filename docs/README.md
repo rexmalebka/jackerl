@@ -11,10 +11,10 @@ function arity:
 
 |                   invokation                   |    arity    |
 |:-----------------------------------------------|:-----------:|
-| `jack:open(ClientName).`                       | jack:open/1 |
-| `jack:open(ClientName, JackOptsAtom).`         | jack:open/2 |
-| `jack:open(ClientName, JackOptsList).`         | jack:open/2 |
-| `jack:open(ClientName, ServerName, JackOpts).` | jack:open/3 |
+| `jack:open(Client_name).`                       | jack:open/1 |
+| `jack:open(Client_name, Jack_optiom).`         | jack:open/2 |
+| `jack:open(Client_name, Jack_options).`         | jack:open/2 |
+| `jack:open(Client_name, Server_name, Jack_option_int).` | jack:open/3 |
 
 
 |     __Param__    |             __description__             |      __type__     |       __example__      |
