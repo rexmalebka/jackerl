@@ -4,14 +4,15 @@
 -export([
 	 open/1, open/2, open/3,
 	 close/1, close/2,
-	 activate/1
+	 activate/1,
+	 deactivate/1
 	]).
 -export([
 	 register/3, register_/3,
-	 callback/2,
-	 deactivate/1,
+	 unregister/2,
 	 client_get/2
 	]).
+-export([callback/2]).
 
 -on_load(init/0).
 
@@ -27,6 +28,7 @@ init() ->
 	ok = erlang:load_nif(Path++"/priv/jackerl", {Pid_c_client, Pid_c_port }).
 
 
+%%%%%% client functions  %%%%%
 
 %%% open a client
 
@@ -85,7 +87,7 @@ client_get(_Client_name, _Parameter)->
 
 
 
-% port functions
+%%%%%% port functions  %%%%%
 
 %%% register a port
 
@@ -99,8 +101,11 @@ register(Client_name, Port_name, Port_flags) when is_atom(Client_name) and is_at
 		      ]),
 	register_(Client_name, Port_name, Port_flags_int).
 
-
 register_(_Client_name,_Port_name, _Port_flags) ->
+	% NIF implementation
+	erlang:nif_error("NIF library not loaded").
+
+unregister(_Client_name,_Port_name) ->
 	% NIF implementation
 	erlang:nif_error("NIF library not loaded").
 
@@ -163,18 +168,10 @@ callback_port(Callback) ->
 			callback_client(Callback)
 	end.
 
-
-
-callback(Callback_name, Callback ) ->
-	CFun = fun()->
-			       receive _ ->
-					       io:format("spawned???",[])
-			       end
-	       end,
-	PID = spawn(CFun),
-	erlang:register(Callback_name, PID),
-	ok.
-
+callback(client, Callback) when is_function(Callback, 2)->
+	callback_client ! {set, Callback};
+callback(port, Callback) when is_function(Callback, 3)->
+	callback_port ! {set, Callback}.
 
 
 %port_unregister(_Client_name, _Port_name) ->
