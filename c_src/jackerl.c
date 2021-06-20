@@ -33,12 +33,41 @@ static ErlNifFunc nif_funcs[] = {
 };
 
 int nif_load(ErlNifEnv* env, void **argc, const ERL_NIF_TERM argv){  
-	ErlNifPid* pid;
+	
+	ErlNifPid pid_client, pid_port;
+
 	erl_server.env = enif_alloc_env();
-	enif_get_local_pid(env, argv, pid);
+	
 
-	erl_server.pid = *pid;
+	const ERL_NIF_TERM* arr;
 
+	int arity;
+
+	enif_get_tuple(
+			env,
+			argv,
+			&arity,
+			&arr
+			);
+
+	enif_get_local_pid(env, arr[0], &pid_client);
+	enif_get_local_pid(env, arr[1], &pid_port);
+
+	erl_server.pid_client = pid_client;
+	erl_server.pid_port = pid_port;
+
+	/*
+	enif_send(
+			NULL,
+                        &erl_server.pid,
+                        erl_server.env,
+                        enif_make_tuple2(
+                                erl_server.env,
+                                enif_make_atom( erl_server.env,"port_registration"),
+                                enif_make_atom( erl_server.env,"port_registration")
+                                )
+		 );
+		 */
 	return 0;
 }
 
