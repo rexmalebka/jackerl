@@ -31,7 +31,8 @@ typedef struct {
 
 typedef struct {
 	ErlNifEnv *env;
-	ErlNifPid pid;
+	ErlNifPid pid_client;
+	ErlNifPid pid_port;
 } gen_server_struct;
 
 gen_server_struct erl_server;

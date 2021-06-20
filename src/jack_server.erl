@@ -16,24 +16,24 @@
 
 
 start() ->
-	gen_server:start_link({global,?MODULE},?MODULE, [], []).
+	gen_server:start_link(?MODULE, [], []).
 
 init(_) ->
 	State =	#{ 
-	 jackProcessCallback => nofun, 
-	 jackShutdownCallback => nofun, 
-	 jackPortRegistrationCallback => nofun, 
-	 jackClientRegistrationCallback => nofun 
+	 process => nofun, 
+	 shutdown => nofun, 
+	 port_registration => nofun, 
+	 clientRegistration => nofun 
 	},
 	{ok, State}.
 
 
 
-handle_call({ X=jackClientRegistrationCallback, Callback}, _From, State) ->
+handle_call({ X=client_registration, Callback}, _From, State) ->
 	NewState = maps:update(X, Callback, State ),
 	{reply, {ok, X, Callback }, NewState};
 
-handle_call({ X=jackPortRegistrationCallback, Callback}, _From, State) ->
+handle_call({ X=port_registration, Callback}, _From, State) ->
 	NewState = maps:update(X, Callback, State ),
 	{reply, {ok, X, Callback }, NewState};
 
@@ -59,70 +59,24 @@ handle_info(_Msg, State) ->
 
 % cast are for nifs invokations
 
-handle_cast({jackProcessCallback}, State) ->
+handle_cast({process}, State) ->
     	{noreply, State};
 
-handle_cast({jackShutdownCallback}, State) ->
+handle_cast({shutdown}, State) ->
     	{noreply, State};
 
-handle_cast({X=jackPortRegistrationCallback, ClientName, PortName, 0}, State) ->
-	io:format("registered one",[]),
+handle_cast({X=port_registration, Client_name, Port_name, Status}, State) ->
+	io:format("registered one ~p ~p ~p~n",[Client_name, Port_name, Status]),
+	{noreply, State};
+
+handle_cast({X=client_registration, Client_name, Status}, State) ->
 	Callback = maps:get(X,State),
 	case Callback of
 		nofun ->
 	      		{noreply, State};
 		_ ->
 			spawn(fun() ->
-					      try Callback(ClientName, PortName,  unregistered) of
-						      _ -> ok
-					      catch
-						      X -> error
-					      end
-			      end ),
-	      		{noreply, State}
-	end;
-
-handle_cast({X=jackPortRegistrationCallback, ClientName, PortName, Y}, State) when is_number(Y) ->
-	Callback = maps:get(X,State),
-	case Callback of
-		nofun ->
-	      		{noreply, State};
-		_ ->
-			spawn(fun() ->
-					      try Callback(ClientName, PortName,  registered) of
-						      _ -> ok
-					      catch
-						      X -> error
-					      end
-			      end ),
-	      		{noreply, State}
-	end;
-
-
-handle_cast({X=jackClientRegistrationCallback, ClientName, 0}, State) ->
-	Callback = maps:get(X,State),
-	case Callback of
-		nofun ->
-	      		{noreply, State};
-		_ ->
-			spawn(fun() ->
-					      try Callback(ClientName,  unregistered) of
-						      _ -> ok
-					      catch
-						      X -> error
-					      end
-			      end ),
-	      		{noreply, State}
-	end;
-
-handle_cast({X=jackClientRegistrationCallback, ClientName, Y}, State) when is_number(Y) ->
-	Callback = maps:get(X,State),
-	case Callback of
-		nofun ->
-	      		{noreply, State};
-		_ ->
-			spawn(fun() ->
-					      try Callback(ClientName,  registered) of
+					      try Callback(Client_name,  Status) of
 						      _ -> ok
 					      catch
 						      X -> error

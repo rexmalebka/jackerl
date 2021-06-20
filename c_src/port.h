@@ -18,9 +18,19 @@ ERL_NIF_TERM port_register(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]){
 	search_results sr = getJackClient(client_name);
 
         if(sr.i < 0) {
-                return enif_make_tuple2(env, 
-                                enif_make_atom(env, "error"), 
-                                enif_make_atom(env, "jackClientNotFound")
+		return enif_make_tuple2(env,
+				enif_make_atom(env, "error"),
+				enif_make_tuple2(
+                                        env,
+                                        enif_make_atom(env, "jack_status"),
+                                        enif_make_list1(
+                                                env,
+                                                enif_make_atom(
+                                                        env,
+                                                        "no_such_client"
+                                                        )
+                                                )
+                                        )
                                 );
         }
 
@@ -42,14 +52,17 @@ ERL_NIF_TERM port_register(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]){
                         return enif_make_tuple2(
 					env,
 					enif_make_atom(env, "error"), 
-                                        enif_make_atom(env, "portsNotAvailable")
+					enif_make_tuple2(
+						env,
+						enif_make_atom(env, "jack_status"),
+						get_jackStatus(env, jack_clients.status[sr.i])
+						)
 					);
                 }
 
 		
                 pname = jack_port_short_name(sr.ptr->port[sr.i].input_port[j]);
 		sr.ptr->port[sr.i].in_chann++;
-		enif_fprintf(stderr,"is input %d\n", sr.ptr->port[sr.i].in_chann);
 
         }else if(portflags & 2){
                 int j = sr.ptr->port[sr.i].out_chann;
@@ -65,7 +78,11 @@ ERL_NIF_TERM port_register(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]){
                         return enif_make_tuple2(
 					env,
 					enif_make_atom(env, "error"), 
-                                        enif_make_atom(env, "portsNotAvailable")
+					enif_make_tuple2(
+						env,
+						enif_make_atom(env, "jack_status"),
+						get_jackStatus(env, jack_clients.status[sr.i])
+						)
 					);
                 }
 
@@ -78,7 +95,7 @@ ERL_NIF_TERM port_register(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]){
 			enif_make_atom(env, "ok"), 
 			enif_make_tuple2(
 				env,
-				enif_make_atom(env, "portName"),
+				enif_make_atom(env, "port_name"),
 				enif_make_atom(env, pname)
 				)
 			);
