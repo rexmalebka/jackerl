@@ -35,15 +35,14 @@ static ErlNifFunc nif_funcs[] = {
 
 int nif_load(ErlNifEnv* env, void **argc, const ERL_NIF_TERM argv){  
 	
-	ErlNifPid pid_client, pid_port;
+	// pid for callbacks 
+	ErlNifPid pid_client, pid_port, pid_shutdown;
 
 	erl_server.env = enif_alloc_env();
 	
 
 	const ERL_NIF_TERM* arr;
-
 	int arity;
-
 	enif_get_tuple(
 			env,
 			argv,
@@ -51,11 +50,16 @@ int nif_load(ErlNifEnv* env, void **argc, const ERL_NIF_TERM argv){
 			&arr
 			);
 
+
 	enif_get_local_pid(env, arr[0], &pid_client);
 	enif_get_local_pid(env, arr[1], &pid_port);
+	enif_get_local_pid(env, arr[2], &pid_shutdown);
 
 	erl_server.pid_client = pid_client;
 	erl_server.pid_port = pid_port;
+	erl_server.pid_shutdown = pid_shutdown;
+
+
 
 	/*
 	enif_send(

@@ -27,12 +27,14 @@ typedef struct {
 typedef struct {
 	jack_struct *ptr;
 	int i;
+	int j;
 } search_results;
 
 typedef struct {
 	ErlNifEnv *env;
 	ErlNifPid pid_client;
 	ErlNifPid pid_port;
+	ErlNifPid pid_shutdown;
 } gen_server_struct;
 
 gen_server_struct erl_server;

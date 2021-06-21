@@ -1,6 +1,5 @@
 #include "callbacks.h"
 
-int JACK_CLIENTS_COUNT = 0;
 
 jack_struct jack_clients;
 
@@ -66,13 +65,13 @@ ERL_NIF_TERM get_jackStatus(ErlNifEnv* env, unsigned int jackStatus){
 			);
 }
 
-search_results getJackClient(char client_name[100]){
+search_results get_jack_client(char client_name[100]){
 	search_results sr = {
 		&jack_clients,
 		-1
 	};
 
-        for(int i=0; i < JACK_CLIENTS_COUNT; i++){
+        for(int i=0; i < MAX_CLIENTS; i++){
 
 		if(jack_clients.client[i] == NULL ) continue;
 
@@ -102,8 +101,17 @@ ERL_NIF_TERM client_open(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]){
 
 	
 	// create a jack struct object
-        int i = JACK_CLIENTS_COUNT;
+        int i = 0;
+	
+	for(int k=0;k< MAX_CLIENTS; k++ ){
+		if(!jack_clients.client[k] ){
+			i = k;
+			break;
+		}
+	}
+	
 
+	jack_clients.client[i] = NULL;
         jack_clients.options[i] = jackopts;
         jack_clients.port[i].in_chann = 0;
         jack_clients.port[i].out_chann = 0;
@@ -121,13 +129,13 @@ ERL_NIF_TERM client_open(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]){
 	jack_set_client_registration_callback(jack_clients.client[i], callback_client, NULL);
 	//jack_set_port_connect_callback(jack_clients.client[i], callback_JackPortRegistrationCallback, NULL);
 	jack_set_port_registration_callback(jack_clients.client[i], callback_port, jack_clients.client[i]);
+	jack_on_shutdown(jack_clients.client[i], callback_shutdown, NULL);
 
 
 	if(jack_clients.status[i] == 0 || jack_clients.status[i] == 4){
 		// everything is okay :)
 
 		// register on jack_clients
-		JACK_CLIENTS_COUNT++;
 		
 		return enif_make_tuple2(env, 
 				enif_make_atom(env, "ok"),
@@ -163,7 +171,7 @@ ERL_NIF_TERM client_close(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]){
         enif_get_atom(env, argv[0], client_name,sizeof(client_name), ERL_NIF_LATIN1);
         enif_get_atom(env, argv[1], server_name,sizeof(server_name), ERL_NIF_LATIN1);
 
-	search_results sr = getJackClient(client_name);
+	search_results sr = get_jack_client(client_name);
 	
 	if(sr.i < 0 ) {
 		return enif_make_tuple2(env, 
@@ -182,12 +190,22 @@ ERL_NIF_TERM client_close(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]){
 				);
 	}else{
 		if(jack_client_close(sr.ptr->client[sr.i]) >= 0){
+
+			char *cname = jack_get_client_name( jack_clients.client[sr.i] );
+			jack_clients.client[sr.i] = NULL;
+
+
+			for(int l=0;l<MAX_INPUT_CHANNELS;l++){
+				sr.ptr->port[sr.i].input_port[l] = NULL;
+				sr.ptr->port[sr.i].output_port[l] = NULL;
+			}
+
 			return enif_make_tuple2(env, 
 					enif_make_atom(env, "ok"),
 					enif_make_tuple2(
 						env, 
 						enif_make_atom(env, "client_name"), 
-						enif_make_atom(env, jack_get_client_name(jack_clients.client[sr.i]))
+						enif_make_atom(env, cname)
 						)
 					);
 		}else{
@@ -212,7 +230,7 @@ ERL_NIF_TERM client_activate(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]
 
         enif_get_atom(env, argv[0], client_name,sizeof(client_name), ERL_NIF_LATIN1);
 	
-	search_results sr = getJackClient(client_name);
+	search_results sr = get_jack_client(client_name);
 
 
 	if(sr.i < 0 ) {
@@ -262,7 +280,7 @@ ERL_NIF_TERM client_deactivate(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv
 
         enif_get_atom(env, argv[0], client_name,sizeof(client_name), ERL_NIF_LATIN1);
 	
-	search_results sr = getJackClient(client_name);
+	search_results sr = get_jack_client(client_name);
 
 
 	if(sr.i < 0 ) {
