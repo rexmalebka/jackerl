@@ -4,29 +4,36 @@
 -export([
 	 open/1, open/2, open/3,
 	 close/1, close/2,
-	 activate/1
+	 activate/1,
+	 deactivate/1
 	]).
 -export([
 	 register/3, register_/3,
-	 callback/2,
-	 deactivate/1,
+	 unregister/2,
 	 client_get/2
 	]).
+-export([callback/2]).
 
 -on_load(init/0).
 
 init() ->
-	Callback_client = fun (Client_name, Status)-> io:format("~p is ~p~n",[Client_name, Status]) end,
-	Callback_port = fun (Client_name,Port_name, Status)-> io:format("~p on ~p is ~p~n",[Port_name,Client_name, Status]) end,
+	Callback_client = fun (Client_name, Status)-> io:format("[ client ] ~p is ~p ~n",[Client_name, Status]) end,
+	Callback_port = fun (Client_name,Port_name, Status)-> io:format("[ port ] ~p on ~p is ~p~n",[Port_name,Client_name, Status]) end,
+	Callback_shutdown = fun() -> io:format("[ shutdown ]",[]) end,
+
 	Pid_c_client = spawn(fun() -> callback_client(Callback_client) end),
 	Pid_c_port = spawn(fun() -> callback_port(Callback_port) end),
+	Pid_c_shutdown = spawn(fun() -> callback_shutdown(Callback_shutdown) end),
 
 	erlang:register(callback_client, Pid_c_client),
 	erlang:register(callback_port, Pid_c_port),
+	erlang:register(callback_shutdown, Pid_c_shutdown),
+
 	{ok, Path} = file:get_cwd(),
-	ok = erlang:load_nif(Path++"/priv/jackerl", {Pid_c_client, Pid_c_port }).
+	ok = erlang:load_nif(Path++"/priv/jackerl", {Pid_c_client, Pid_c_port, Pid_c_shutdown}).
 
 
+%%%%%% client functions  %%%%%
 
 %%% open a client
 
@@ -85,9 +92,12 @@ client_get(_Client_name, _Parameter)->
 
 
 
-% port functions
+%%%%%% port functions  %%%%%
 
 %%% register a port
+
+register(Client_name, Port_name, Port_flag) when is_atom(Client_name) and is_atom(Port_name) and is_atom(Port_flag)->
+	register(Client_name,Port_name, [Port_flag]);
 
 register(Client_name, Port_name, Port_flags) when is_atom(Client_name) and is_atom(Port_name) and is_list(Port_flags)->
 	Port_flags_int = lists:sum([
@@ -99,10 +109,91 @@ register(Client_name, Port_name, Port_flags) when is_atom(Client_name) and is_at
 		      ]),
 	register_(Client_name, Port_name, Port_flags_int).
 
-
 register_(_Client_name,_Port_name, _Port_flags) ->
 	% NIF implementation
 	erlang:nif_error("NIF library not loaded").
+
+unregister(_Client_name,_Port_name) ->
+	% NIF implementation
+	erlang:nif_error("NIF library not loaded").
+
+
+%%%%%% concurrency function  %%%%%
+
+%%% 
+
+jack(State)->
+	receive
+		{set, {client, Client_name}} ->
+			NState = State#{Client_name=> #{input=>#{}, output=>#{}}},
+			jack(NState);
+		{delete, {client, Client_name}} ->
+			NState = maps:remove(Client_name, State),
+			jack(NState);
+		{set, {input, Client_name, Port_name}} ->
+			case maps:find(Client_name, State) of
+				error ->
+					jack(State);
+				{ok, Ports} -> 
+					Inputs = maps:get(input,Ports),
+					Inputs
+			end;
+		_ ->
+			jack(State)
+	end.
+
+
+%
+%%%%%% callback functions  %%%%%
+
+
+callback_shutdown(Callback) ->
+	receive 
+		{set,New_callback} when is_function(Callback,0) ->
+			callback_shutdown(New_callback);
+		{shutdown}->
+			spawn(
+			  fun() ->
+					  try Callback() of
+						  _ -> ok
+					  catch
+						  _ -> error
+					  end
+			  end),
+			callback_shutdown(Callback);
+		_ -> 
+			callback_shutdown(Callback)
+	end.
+
+callback_process(Callback) ->
+	receive 
+		{set,New_callback} when is_function(Callback,2) ->
+			callback_client(New_callback);
+		{Client_name, registered} when is_atom(Client_name) ->
+			spawn(
+			  fun() ->
+					  try Callback(Client_name,  registered) of
+						  _ -> ok
+					  catch
+						  _ -> error
+					  end
+			  end),
+			callback_process(Callback);
+		{Client_name, unregistered} when is_atom(Client_name) ->
+			spawn(
+			  fun() ->
+					  try Callback(Client_name,  unregistered) of
+						  _ -> ok
+					  catch
+						  _ -> error
+					  end
+			  end),
+			callback_process(Callback);
+		_ -> 
+			callback_process(Callback)
+	end.
+
+%%% client callback
 
 callback_client(Callback) -> 
 	receive 
@@ -129,10 +220,12 @@ callback_client(Callback) ->
 			  end),
 			callback_client(Callback);
 		X -> 
-			io:format("~p~n",[X]),
+			io:format("------~p~n",[X]),
 			callback_client(Callback)
 	end.
 
+
+%%% port callback
 
 callback_port(Callback) -> 
 	receive 
@@ -163,22 +256,18 @@ callback_port(Callback) ->
 			callback_client(Callback)
 	end.
 
+%%% callback implementation
 
-
-callback(Callback_name, Callback ) ->
-	CFun = fun()->
-			       receive _ ->
-					       io:format("spawned???",[])
-			       end
-	       end,
-	PID = spawn(CFun),
-	erlang:register(Callback_name, PID),
-	ok.
+callback(client, Callback) when is_function(Callback, 2)->
+	callback_client ! {set, Callback};
+callback(port, Callback) when is_function(Callback, 3)->
+	callback_port ! {set, Callback};
+callback(shutdown, Callback) when is_function(Callback, 2)->
+	callback_shutdown ! {set, Callback}.
 
 
 
-%port_unregister(_Client_name, _Port_name) ->
-%	erlang:nif_error("NIF library not loaded").
+
 
 %port_rename(_Client_name, _Port_name, _Port_nameNew) ->
 %	erlang:nif_error("NIF library not loaded").
