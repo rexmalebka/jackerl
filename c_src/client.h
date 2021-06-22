@@ -1,7 +1,5 @@
-#include "callbacks.h"
-
-
 jack_struct jack_clients;
+#include "callbacks.h"
 
 
 ERL_NIF_TERM get_jackStatus(ErlNifEnv* env, unsigned int jackStatus){
@@ -130,6 +128,11 @@ ERL_NIF_TERM client_open(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]){
 	//jack_set_port_connect_callback(jack_clients.client[i], callback_JackPortRegistrationCallback, NULL);
 	jack_set_port_registration_callback(jack_clients.client[i], callback_port, jack_clients.client[i]);
 	jack_on_shutdown(jack_clients.client[i], callback_shutdown, NULL);
+
+
+	memcpy(&jack_clients.proc_indx[i], &i, sizeof(int));
+
+	jack_set_process_callback(jack_clients.client[i], callback_process, jack_clients.proc_indx[i]);
 
 
 	if(jack_clients.status[i] == 0 || jack_clients.status[i] == 4){

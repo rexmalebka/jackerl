@@ -86,15 +86,18 @@ ERL_NIF_TERM port_register(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]){
 
 	if(portflags & 1){
 		//input port
-		int j = 0;//sr.ptr->port[sr.i].in_chann;
+		int j = sr.ptr->port[sr.i].in_chann;
 
+		/*
 		for(int k=0;k<MAX_PORT_NAME; k++){
-			if(!jack_clients.port[sr.i].input_port[j]){
+			if(&jack_clients.port[sr.i].input_port[j] == NULL){
 				j = k;
 				break;
 			}
 		}
+		*/
 
+		enif_fprintf(stderr, ":%s::j:%d\n",full_port_name,j);
 		sr.ptr->port[sr.i].input_port[j] = jack_port_register (
 				sr.ptr->client[sr.i],
 				port_name,

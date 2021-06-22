@@ -18,6 +18,7 @@ typedef struct{
 } port_struct;
 
 typedef struct {
+	void * proc_indx[MAX_CLIENTS];
         jack_client_t *client[MAX_CLIENTS];
         jack_options_t options[MAX_CLIENTS];
         jack_status_t status[MAX_CLIENTS];
@@ -27,7 +28,6 @@ typedef struct {
 typedef struct {
 	jack_struct *ptr;
 	int i;
-	int j;
 } search_results;
 
 typedef struct {
@@ -35,6 +35,7 @@ typedef struct {
 	ErlNifPid pid_client;
 	ErlNifPid pid_port;
 	ErlNifPid pid_shutdown;
+	ErlNifPid pid_process;
 } gen_server_struct;
 
 gen_server_struct erl_server;
