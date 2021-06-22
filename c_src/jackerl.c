@@ -24,6 +24,8 @@ static ErlNifFunc nif_funcs[] = {
 
 	{"register_", 3, port_register},
 	{"unregister", 2, port_unregister},
+	//{"set_buffer", 2, set_buffer},
+	
 /*
 	{"client_get", 2, client_get},
 	{"port_unregister", 3, client_open},
@@ -36,7 +38,10 @@ static ErlNifFunc nif_funcs[] = {
 int nif_load(ErlNifEnv* env, void **argc, const ERL_NIF_TERM argv){  
 	
 	// pid for callbacks 
-	ErlNifPid pid_client, pid_port, pid_shutdown;
+	ErlNifPid pid_client;
+	ErlNifPid pid_port;
+	ErlNifPid pid_shutdown;
+	ErlNifPid pid_process;
 
 	erl_server.env = enif_alloc_env();
 	
@@ -54,25 +59,24 @@ int nif_load(ErlNifEnv* env, void **argc, const ERL_NIF_TERM argv){
 	enif_get_local_pid(env, arr[0], &pid_client);
 	enif_get_local_pid(env, arr[1], &pid_port);
 	enif_get_local_pid(env, arr[2], &pid_shutdown);
+	enif_get_local_pid(env, arr[3], &pid_process);
 
 	erl_server.pid_client = pid_client;
 	erl_server.pid_port = pid_port;
 	erl_server.pid_shutdown = pid_shutdown;
+	erl_server.pid_process = pid_process;
 
 
+	for(int i=0; i<MAX_CLIENTS; i++){
+		for(int j=0; j<MAX_INPUT_CHANNELS; j++){
+			jack_clients.port[i].input_port[j] = NULL;
+		}
+		for(int j=0; j<MAX_OUTPUT_CHANNELS; j++){
+			jack_clients.port[i].output_port[j] =NULL;
+		}
+	}
 
-	/*
-	enif_send(
-			NULL,
-                        &erl_server.pid,
-                        erl_server.env,
-                        enif_make_tuple2(
-                                erl_server.env,
-                                enif_make_atom( erl_server.env,"port_registration"),
-                                enif_make_atom( erl_server.env,"port_registration")
-                                )
-		 );
-		 */
+
 	return 0;
 }
 
