@@ -24,7 +24,7 @@ static ErlNifFunc nif_funcs[] = {
 
 	{"register_", 3, port_register},
 	{"unregister", 2, port_unregister},
-	//{"set_buffer", 2, set_buffer},
+	{"set_buffer", 2, set_buffer},
 	
 /*
 	{"client_get", 2, client_get},
@@ -65,16 +65,6 @@ int nif_load(ErlNifEnv* env, void **argc, const ERL_NIF_TERM argv){
 	erl_server.pid_port = pid_port;
 	erl_server.pid_shutdown = pid_shutdown;
 	erl_server.pid_process = pid_process;
-
-
-	for(int i=0; i<MAX_CLIENTS; i++){
-		for(int j=0; j<MAX_INPUT_CHANNELS; j++){
-			jack_clients.port[i].input_port[j] = NULL;
-		}
-		for(int j=0; j<MAX_OUTPUT_CHANNELS; j++){
-			jack_clients.port[i].output_port[j] =NULL;
-		}
-	}
 
 
 	return 0;

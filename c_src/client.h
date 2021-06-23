@@ -1,5 +1,4 @@
 jack_struct jack_clients;
-#include "callbacks.h"
 
 
 ERL_NIF_TERM get_jackStatus(ErlNifEnv* env, unsigned int jackStatus){
@@ -84,6 +83,10 @@ search_results get_jack_client(char client_name[100]){
         return sr;
 }
 
+
+
+
+#include "callbacks.h"
 ERL_NIF_TERM client_open(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]){
 	
 	// check is args are valid
@@ -197,11 +200,6 @@ ERL_NIF_TERM client_close(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]){
 			char *cname = jack_get_client_name( jack_clients.client[sr.i] );
 			jack_clients.client[sr.i] = NULL;
 
-
-			for(int l=0;l<MAX_INPUT_CHANNELS;l++){
-				sr.ptr->port[sr.i].input_port[l] = NULL;
-				sr.ptr->port[sr.i].output_port[l] = NULL;
-			}
 
 			return enif_make_tuple2(env, 
 					enif_make_atom(env, "ok"),
