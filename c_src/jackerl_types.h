@@ -1,7 +1,6 @@
 #include <erl_nif.h>
 #include <jack/jack.h>
 
-#define MAX_INPUT_CHANNELS 100
 #define MAX_OUTPUT_CHANNELS 100
 #define MAX_CLIENTS 100
 
@@ -13,8 +12,7 @@
 typedef struct{
         int in_chann;
         int out_chann;
-        jack_port_t *input_port[MAX_INPUT_CHANNELS];
-        jack_port_t *output_port[MAX_OUTPUT_CHANNELS];
+        double output[MAX_OUTPUT_CHANNELS];
 } port_struct;
 
 typedef struct {

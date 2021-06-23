@@ -12,7 +12,10 @@
 	 unregister/2,
 	 client_get/2
 	]).
--export([callback/2]).
+-export([
+	 callback/2, callback/3,
+	 set_buffer/2
+	]).
 
 -on_load(init/0).
 
@@ -20,12 +23,12 @@ init() ->
 	Callback_client = fun (Client_name, Status)-> io:format("[ client ] ~p is ~p ~n",[Client_name, Status]) end,
 	Callback_port = fun (Client_name,Port_name, Status)-> io:format("[ port ] ~p on ~p is ~p~n",[Port_name,Client_name, Status]) end,
 	Callback_shutdown = fun() -> io:format("[ shutdown ]",[]) end,
-	Callback_process = fun() -> io:format("[ process ]",[]) end,
+	Process_map = #{},
 
 	Pid_c_client = spawn(fun() -> callback_client(Callback_client) end),
 	Pid_c_port = spawn(fun() -> callback_port(Callback_port) end),
 	Pid_c_shutdown = spawn(fun() -> callback_shutdown(Callback_shutdown) end),
-	Pid_c_process = spawn(fun() -> callback_process(Callback_shutdown) end),
+	Pid_c_process = spawn(fun() -> callback_process(Process_map) end),
 
 	erlang:register(callback_client, Pid_c_client),
 	erlang:register(callback_port, Pid_c_port),
@@ -95,6 +98,8 @@ client_get(_Client_name, _Parameter)->
 
 
 
+
+
 %%%%%% port functions  %%%%%
 
 %%% register a port
@@ -115,6 +120,7 @@ register(Client_name, Port_name, Port_flags) when is_atom(Client_name) and is_at
 register_(_Client_name,_Port_name, _Port_flags) ->
 	% NIF implementation
 	erlang:nif_error("NIF library not loaded").
+
 
 unregister(_Client_name,_Port_name) ->
 	% NIF implementation
@@ -149,33 +155,38 @@ callback_shutdown(Callback) ->
 			callback_shutdown(Callback)
 	end.
 
-callback_process(Callback) ->
+%%%%%% callback functions  %%%%%
+
+
+callback_process(Callbacks) ->
 	receive 
-		{set,New_callback} when is_function(Callback,2) ->
-			callback_client(New_callback);
-		{Client_name, registered} when is_atom(Client_name) ->
-			spawn(
-			  fun() ->
-					  try Callback(Client_name,  registered) of
-						  _ -> ok
-					  catch
-						  _ -> error
-					  end
-			  end),
-			callback_process(Callback);
-		{Client_name, unregistered} when is_atom(Client_name) ->
-			spawn(
-			  fun() ->
-					  try Callback(Client_name,  unregistered) of
-						  _ -> ok
-					  catch
-						  _ -> error
-					  end
-			  end),
-			callback_process(Callback);
-		X -> 
-			io:format("----~p~n",[X]),
-			callback_process(Callback)
+		{set, Client_name, Callback} when is_atom(Client_name) and is_function(Callback,1) ->
+			New_callbacks = Callbacks#{Client_name => Callback},
+			callback_process(New_callbacks);
+		{process, Client_name, Data} when is_atom(Client_name) and is_list(Data)->
+			case maps:find(Client_name, Callbacks) of 
+				{ok, Callback} ->
+					spawn(
+					  fun() ->
+
+							  try Callback(Data) 
+							  catch
+								  error:Reason -> 
+									  io:format("[ error in callback ] (~p) : (~p).~n",[Client_name,Reason]),
+									  error;
+								  exit:Reason ->
+									  io:format("[ exit in callback ]  (~p) : (~p). ~n" ,[Client_name, Reason]),
+									  error;
+								  _->
+									  error
+							  end
+					  end),
+					callback_process(Callbacks);
+				error ->
+					callback_process(Callbacks)
+			end;
+		_ -> 
+			callback_process(Callbacks)
 	end.
 
 %%% client callback
@@ -249,6 +260,8 @@ callback(port, Callback) when is_function(Callback, 3)->
 	callback_port ! {set, Callback};
 callback(shutdown, Callback) when is_function(Callback, 2)->
 	callback_shutdown ! {set, Callback}.
+callback(process, Client_name, Callback) when is_atom(Client_name) and is_function(Callback, 1)->
+	callback_process ! {set, Client_name, Callback}.
 
 
 
@@ -306,23 +319,6 @@ callback(shutdown, Callback) when is_function(Callback, 2)->
 %callback_info() ->
 %	erlang:nif_error("NIF library not loaded").
 
-%callback_shutdown()->
-%	erlang:nif_error("NIF library not loaded").
-
-%callback_process()->
-%	erlang:nif_error("NIF library not loaded").
-
-%callback_bsize() ->
-%	erlang:nif_error("NIF library not loaded").
-
-%callback_srate()->
-%	erlang:nif_error("NIF library not loaded").
-
-%callback_client() ->
-%	erlang:nif_error("NIF library not loaded").
-
-%callback_port() ->
-%	erlang:nif_error("NIF library not loaded").
 
 %callback_latency()->
 %	erlang:nif_error("NIF library not loaded").
